@@ -5,14 +5,84 @@
 		TabbedPanelItem:
 			text: 'test'
 			BoxLayout:
-				orientation: 'vertical'
-				Label:
-					id: blubb
-					text: 'test'
+				orientation: 'horizontal'
+				BoxLayout:
+					orientation: 'vertical'
+					BoxLayout:
+						id: characteristics
+						orientaiton: "horizontal"
+						size_hint_y: .1
+						CharacteristicButton:
+							id: ws
+							_text: "Weapon Skill\n(WS)\n[size={}]{}[/size]\nadvanced: {}"
+							on_press: root.characteristics_test(self)
+						CharacteristicButton:
+							id: bs
+							_text: "Ballistic Skill\n(BS)\n[size={}]{}[/size]\nadvanced: {}"
+							on_press: root.characteristics_test(self)
+						CharacteristicButton:
+							id: s
+							_text: "Strength\n(S)\n[size={}]{}[/size]\nadvanced: {}"
+							on_press: root.characteristics_test(self)
+						CharacteristicButton:
+							id: t
+							_text: "Toughness\n(T)\n[size={}]{}[/size]\nadvanced: {}"
+							on_press: root.characteristics_test(self)
+						CharacteristicButton:
+							id: ag
+							_text: "Agility\n(Ag)\n[size={}]{}[/size]\nadvanced: {}"
+							on_press: root.characteristics_test(self)
+						CharacteristicButton:
+							id: int
+							_text: "Intelligence\n(Int)\n[size={}]{}[/size]\nadvanced: {}"
+							on_press: root.characteristics_test(self)
+						CharacteristicButton:
+							id: per
+							_text: "Perception\n(Per)\n[size={}]{}[/size]\nadvanced: {}"
+							on_press: root.characteristics_test(self)
+						CharacteristicButton:
+							id: wp
+							_text: "Will Power\n(WP)\n[size={}]{}[/size]\nadvanced: {}"
+							on_press: root.characteristics_test(self)
+						CharacteristicButton:
+							id: fel
+							_text: "Fellowship\n(Fel)\n[size={}]{}[/size]\nadvanced: {}"
+							on_press: root.characteristics_test(self)
+					ScrollView:
+						GridLayout:
+							cols: 2
+							id: skill_box
+				BoxLayout:
+					orientation: 'vertical'
+					Label:
+						id: blubb
+						text: 'test'
 		TabbedPanelItem:
 			id: all_talents
 			text: 'all talents'
 
+<CharacteristicButton>:
+	markup: True
+	font_size: pt(5)
+	valign: "center"
+	halign: "center"
+
+<CharacteristicNameLabel@Label>:
+	size_hint_y: .4
+	valign: 'center'
+	halign: 'center'
+
+<CharacteristicValueLabel@Label>:
+	font_size: pt(15)
+	markup: True
+	text: '[b]2[/b]5'
+
+<CharacteristicLayout>:
+	orientation: "vertical"
+	CharacteristicNameLabel:
+		id: name
+	characteristicValueLabel
+		id:value
 
 <StartLayout>:
 	cols: 2
