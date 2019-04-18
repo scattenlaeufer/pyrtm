@@ -111,19 +111,28 @@ class MainBox(BoxLayout):
                 if key in self.character['skills']:
                     for skill_group, status in self.character['skills'][key].items():
                         button = Button()
+                        button.skill_key = key
+                        button.bind(on_press=self.skill_info)
                         button.text = "{} ({})".format(skill['name'], skill_group)
                         self.ids['skill_box'].add_widget(button)
                 else:
                     button = Button()
+                    button.skill_key = key
+                    button.bind(on_press=self.skill_info)
                     button.text = "{} ()".format(skill['name'])
                     self.ids['skill_box'].add_widget(button)
             else:
                 button = Button()
+                button.skill_key = key
+                button.bind(on_press=self.skill_info)
                 button.text = skill["name"]
                 self.ids['skill_box'].add_widget(button)
 
     def characteristics_test(self, instance):
         InfoPopup("test", instance.text).open()
+
+    def skill_info(self, instance):
+        SkillInfoPopup(self.data["skills"][instance.skill_key])
 
 
 class StartLayout(GridLayout):
@@ -148,14 +157,6 @@ class StartLayout(GridLayout):
         TalentInfoPopup(self.data["talents"]["air_of_authority"])
 
 
-class InfoPopup(Popup):
-    def __init__(self, title, info, **kwargs):
-        super(InfoPopup, self).__init__(**kwargs)
-        self.title = title
-        self.ids["label_info"].text = info
-        self.open()
-
-
 class CharacteristicButton(Button):
 
     _text = ""
@@ -173,9 +174,22 @@ class CharacteristicButton(Button):
         self.text = self._text.format(int(self.font_size*2), characteristic[0], characteristic[1])
 
 
+class InfoPopup(Popup):
+    def __init__(self, title, info, **kwargs):
+        super(InfoPopup, self).__init__(**kwargs)
+        self.title = title
+        self.ids["label_info"].text = info
+        self.open()
+
+
+class SkillInfoPopup(InfoPopup):
+    def __init__(self, skill, **kwargs):
+        info_text = skill["text"]
+        super(SkillInfoPopup, self).__init__(skill["name"], info_text, **kwargs)
+
+
 class TalentInfoPopup(InfoPopup):
     def __init__(self, talent, **kwargs):
-
         prerequisits = []
         if len(talent["prerequisits"]["characteristics"]) > 0:
             for key, value in talent["prerequisits"]["characteristics"].items():
@@ -195,9 +209,9 @@ class TalentInfoPopup(InfoPopup):
         talent_group = ""
         if talent["talent_group"]:
             talent_group = (
-                "[b]Talent Groups[/b]: " + ", ".join(talent["talent_group"]) + "\n\n"
+                "[b]Talent Groups[/b]: " + ", ".join(talent["talent_group"]) + "\n\n----\n\n"
             )
-        info_text = "{}\n\n[b]Prerequisits:[/b] {}\n\n{}{}".format(
+        info_text = "{}\n\n----\n\n[b]Prerequisits:[/b] {}\n\n----\n\n{}{}".format(
             talent["short_text"], ", ".join(prerequisits), talent_group, talent["text"]
         )
         super(TalentInfoPopup, self).__init__(talent["name"], info_text, **kwargs)
