@@ -49,14 +49,24 @@
 							_text: "Fellowship\n(Fel)\n[size={}]{}[/size]\nadvanced: {}"
 							on_press: root.characteristics_test(self)
 					ScrollView:
-						GridLayout:
-							cols: 2
+						BoxLayout:
 							id: skill_box
+							orientation: "vertical"
+							size_hint_y: None
+							minimun_height: self.setter("height")
 				BoxLayout:
 					orientation: 'vertical'
 					Label:
 						id: blubb
 						text: 'test'
+						size_hint_y: .1
+					ScrollView:
+						view: box_skills
+						BoxLayout:
+							id: box_skills
+							orientation: "vertical"
+							size_hint_y: None
+							minium_height: self.setter("height")
 		TabbedPanelItem:
 			id: all_talents
 			text: 'all talents'
@@ -83,6 +93,41 @@
 		id: name
 	characteristicValueLabel
 		id:value
+
+<SkillBox>:
+	canvas.before:
+		Color:
+			rgba: (.15, .15, .15, 1) if self.bg else (.1, .1, .1, 1)
+		Rectangle:
+			pos: self.pos
+			size: self.size
+	orientation: "horizontal"
+	size_hint_y: None
+	height: name.font_size * 2
+	Label:
+		id: name
+		text_size: self.width - 20, self.height
+		valign: "center"
+	Label: 
+		id: characteristic
+		size_hint_x: .2
+	Label:
+		id: status
+		size_hint_x: .2
+	Label:
+		id: label_skill_value
+		size_hint_x: .2
+	Button:
+		id: button_test
+		text: "Test"
+		background_color: (1, 1, 1, 1) if root.bg else (.8, .8, .8, 1)
+		size_hint_x: .4
+	Button:
+		id: button_info
+		background_color: (1, 1, 1, 1) if root.bg else (.8, .8, .8, 1)
+		text: "Info"
+		on_press: root.skill_info()
+		size_hint_x: .4
 
 <StartLayout>:
 	cols: 2

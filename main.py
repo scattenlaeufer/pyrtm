@@ -6,6 +6,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
+from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty
 import os
 
 # from jnius import autoclass
@@ -45,34 +46,19 @@ default_character = {
     },
     "skills": {
         "awareness": "t",
-        "ciphers": {
-            "Roque Trader": "t",
-        },
+        "ciphers": {"Roque Trader": "t"},
         "charm": "+10",
         "command": "+10",
         "commerce": "t",
-        "common_lore": {
-            "Imperium": "t",
-            "Rogue Trader": "t",
-        },
+        "common_lore": {"Imperium": "t", "Rogue Trader": "t"},
         "dodge": "t",
         "evaluate": "t",
         "inquiry": "t",
         "literacy": "+10",
-        "pilot": {
-            "Space Craft": "t",
-        },
-        "scholastic_lore": {
-            "Astromancy": "t",
-        },
-        "secret_tongue": {
-            "Rogue Trader": 't',
-        },
-        "speak_language": {
-            "High Gothic": "+10",
-            "Low Gothic": "t",
-            "Trader Cant": "t",
-        },
+        "pilot": {"Space Craft": "t"},
+        "scholastic_lore": {"Astromancy": "t"},
+        "secret_tongue": {"Rogue Trader": "t"},
+        "speak_language": {"High Gothic": "+10", "Low Gothic": "t", "Trader Cant": "t"},
     },
     "talents": [
         "paranoia",
@@ -87,7 +73,7 @@ default_character = {
         "air_of_authority",
         "ambidextrous",
         "renowned_warrant",
-    ]
+    ],
 }
 
 
@@ -106,27 +92,55 @@ class MainBox(BoxLayout):
         self.ids["blubb"].text = str(self.ids["skill_box"].parent.height)
         for key in characteristics.keys():
             self.ids[key].set_text(default_character["characteristics"][key])
+        self.ids["skill_box"].height = 0
+        bg = True
+        self.skill_box_dict = {}
         for key, skill in self.data["skills"].items():
             if skill["skill_group"]:
-                if key in self.character['skills']:
-                    for skill_group, status in self.character['skills'][key].items():
-                        button = Button()
-                        button.skill_key = key
-                        button.bind(on_press=self.skill_info)
-                        button.text = "{} ({})".format(skill['name'], skill_group)
-                        self.ids['skill_box'].add_widget(button)
+                skill_group_box_dict = {}
+                if key in self.character["skills"]:
+                    for skill_group, status in self.character["skills"][key].items():
+                        box = SkillBox(
+                            skill,
+                            self.data["characteristics"][skill["characteristic"]][
+                                "short"
+                            ],
+                            self.character["characteristics"][skill["characteristic"]][0],
+                            status,
+                            bg,
+                            name="{} ({})".format(skill["name"], skill_group),
+                        )
+                        bg = not bg
+                        self.ids["skill_box"].height += box.height
+                        self.ids["skill_box"].add_widget(box)
+                        skill_group_box_dict[skill_group] = box
                 else:
-                    button = Button()
-                    button.skill_key = key
-                    button.bind(on_press=self.skill_info)
-                    button.text = "{} ()".format(skill['name'])
-                    self.ids['skill_box'].add_widget(button)
+                    box = SkillBox(
+                        skill,
+                        self.data["characteristics"][skill["characteristic"]]["short"],
+                        self.character["characteristics"][skill["characteristic"]][0],
+                        None,
+                        bg,
+                        name="{} ()".format(skill["name"]),
+                    )
+                    bg = not bg
+                    self.ids["skill_box"].height += box.height
+                    self.ids["skill_box"].add_widget(box)
+                self.skill_box_dict[key] = skill_group_box_dict
             else:
-                button = Button()
-                button.skill_key = key
-                button.bind(on_press=self.skill_info)
-                button.text = skill["name"]
-                self.ids['skill_box'].add_widget(button)
+                box = SkillBox(
+                    skill,
+                    self.data["characteristics"][skill["characteristic"]]["short"],
+                    self.character["characteristics"][skill["characteristic"]][0],
+                    self.character["skills"][key]
+                    if key in self.character["skills"].keys()
+                    else None,
+                    bg,
+                )
+                bg = not bg
+                self.ids["skill_box"].height += box.height
+                self.ids["skill_box"].add_widget(box)
+                self.skill_box_dict[key] = box
 
     def characteristics_test(self, instance):
         InfoPopup("test", instance.text).open()
@@ -171,7 +185,45 @@ class CharacteristicButton(Button):
 
     def set_text(self, characteristic):
         self.value = characteristic[0]
-        self.text = self._text.format(int(self.font_size*2), characteristic[0], characteristic[1])
+        self.text = self._text.format(
+            int(self.font_size * 2), characteristic[0], characteristic[1]
+        )
+
+
+class SkillBox(BoxLayout):
+
+    bg = BooleanProperty()
+    skill_value = NumericProperty()
+
+    def __init__(self, skill, characteristic, characteristic_value, status, bg, name=None, **kwargs):
+        super(SkillBox, self).__init__(**kwargs)
+        self.bg = bg
+        self.skill = skill
+        if name:
+            self.ids["name"].text = name
+        else:
+            self.ids["name"].text = skill["name"]
+        self.ids["characteristic"].text = "({})".format(characteristic)
+        if status:
+            self.ids["status"].text = status.upper()
+            if status == "t":
+                self.skill_value = characteristic_value
+            elif status == "+10":
+                self.skill_value = characteristic_value + 10
+            elif status == "+20":
+                self.skill_value = characteristic_value + 20
+        elif skill["basic"]:
+            self.ids["status"].text = "B"
+            self.skill_value = characteristic_value // 2
+        else:
+            self.ids['button_test'].disabled = True
+            self.ids['button_test'].opacity = 0
+
+    def skill_info(self):
+        SkillInfoPopup(self.skill)
+
+    def on_skill_value(self, instance, value):
+        self.ids["label_skill_value"].text = str(value)
 
 
 class InfoPopup(Popup):
@@ -184,8 +236,35 @@ class InfoPopup(Popup):
 
 class SkillInfoPopup(InfoPopup):
     def __init__(self, skill, **kwargs):
-        info_text = skill["text"]
-        super(SkillInfoPopup, self).__init__(skill["name"], info_text, **kwargs)
+        info_text = []
+        if skill["basic"]:
+            basic_list = ["Basic"]
+        else:
+            basic_list = ["Advanced"]
+        if skill["descriptor"]:
+            basic_list.append(skill["descriptor"])
+        info_text.append("({})".format(", ".join(basic_list)))
+        info_text.append(
+            "[b]Characteristic:[/b] {}".format(characteristics[skill["characteristic"]])
+        )
+        if skill["skill_group"]:
+            info_text.append(
+                "[b]Skill Groups:[/b] {}".format(", ".join(skill["skill_group"]))
+            )
+        info_text.append(
+            "{}\n\n[b]Skill Use:[/b] {}".format(skill["text"], skill["skill_use"])
+        )
+        if skill["special_use"]:
+            special_use_list = []
+            special_use_list.append("[b]Special Use:[/b]")
+            for key, value in skill["special_use"].items():
+                special_use_list.append(
+                    "{}\n  {}".format(key, "\n\n  ".join(value.split("\n\n")))
+                )
+            info_text.append("\n\n".join(special_use_list))
+        super(SkillInfoPopup, self).__init__(
+            skill["name"], "\n\n----\n\n".join(info_text), **kwargs
+        )
 
 
 class TalentInfoPopup(InfoPopup):
@@ -209,7 +288,9 @@ class TalentInfoPopup(InfoPopup):
         talent_group = ""
         if talent["talent_group"]:
             talent_group = (
-                "[b]Talent Groups[/b]: " + ", ".join(talent["talent_group"]) + "\n\n----\n\n"
+                "[b]Talent Groups[/b]: "
+                + ", ".join(talent["talent_group"])
+                + "\n\n----\n\n"
             )
         info_text = "{}\n\n----\n\n[b]Prerequisits:[/b] {}\n\n----\n\n{}{}".format(
             talent["short_text"], ", ".join(prerequisits), talent_group, talent["text"]
