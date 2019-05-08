@@ -3,13 +3,32 @@
 from kivy.app import App
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.dropdown import DropDown
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
-from kivy.properties import BooleanProperty, NumericProperty, ObjectProperty
+from kivy.properties import BooleanProperty, NumericProperty, OptionProperty
 import os
+import random
 
 # from jnius import autoclass
+
+
+test_difficulties = [
+    ["Trivial", 60],
+    ["Elementary", 50],
+    ["Simple", 40],
+    ["Easy", 30],
+    ["Routine", 20],
+    ["Ordinary", 10],
+    ["Challenging", 0],
+    ["Difficult", -10],
+    ["Hard", -20],
+    ["Very Hard", -30],
+    ["Arduous", -40],
+    ["Punishing", -50],
+    ["Hellish", -60],
+]
 
 characteristics = {
     "ws": "Weapon Skill",
@@ -105,7 +124,9 @@ class MainBox(BoxLayout):
                             self.data["characteristics"][skill["characteristic"]][
                                 "short"
                             ],
-                            self.character["characteristics"][skill["characteristic"]][0],
+                            self.character["characteristics"][skill["characteristic"]][
+                                0
+                            ],
                             status,
                             bg,
                             name="{} ({})".format(skill["name"], skill_group),
@@ -176,13 +197,6 @@ class CharacteristicButton(Button):
     _text = ""
     value = 0
 
-    # def __init__(self, short, characteristic, **kwargs):
-    #     super(CharacteristicButton, self).__init__(**kwargs)
-    #     self.text = "{}\n{}\n{}\n●".format(characteristics[short], short.capitalize(), characteristic[0])
-    #     self.font_name = "Body"
-    #     print(self.text)
-    #     print(self.font_name)
-
     def set_text(self, characteristic):
         self.value = characteristic[0]
         self.text = self._text.format(
@@ -195,14 +209,23 @@ class SkillBox(BoxLayout):
     bg = BooleanProperty()
     skill_value = NumericProperty()
 
-    def __init__(self, skill, characteristic, characteristic_value, status, bg, name=None, **kwargs):
+    def __init__(
+        self,
+        skill,
+        characteristic,
+        characteristic_value,
+        status,
+        bg,
+        name=None,
+        **kwargs
+    ):
         super(SkillBox, self).__init__(**kwargs)
         self.bg = bg
         self.skill = skill
         if name:
-            self.ids["name"].text = name
+            self.ids["button_info"].text = name
         else:
-            self.ids["name"].text = skill["name"]
+            self.ids["button_info"].text = skill["name"]
         self.ids["characteristic"].text = "({})".format(characteristic)
         if status:
             self.ids["status"].text = status.upper()
@@ -216,14 +239,62 @@ class SkillBox(BoxLayout):
             self.ids["status"].text = "B"
             self.skill_value = characteristic_value // 2
         else:
-            self.ids['button_test'].disabled = True
-            self.ids['button_test'].opacity = 0
+            self.ids["button_test"].disabled = True
+            self.ids["button_test"].opacity = 0
 
     def skill_info(self):
         SkillInfoPopup(self.skill)
 
     def on_skill_value(self, instance, value):
-        self.ids["label_skill_value"].text = str(value)
+        self.ids["button_test"].text = str(value)
+
+    def do_test(self):
+        TestPopup(self.ids["button_info"].text, self.skill_value)
+
+
+class TestPopup(Popup):
+
+    current_value = NumericProperty()
+    success = OptionProperty("none", options=["none", "yes", "no"])
+
+    def __init__(self, title, base_value, modifier=[], **kwargs):
+        super(TestPopup, self).__init__(**kwargs)
+        self.title = "{} Test".format(title)
+        self.base_value = base_value
+        self.difficulty = 0
+        self.current_value = self.base_value
+        self.modifier = modifier
+        self.difficulty_dropdown = DropDown()
+        for difficulty in test_difficulties:
+            button = DropdownButton(*difficulty)
+            button.bind(
+                on_release=lambda btn: self.difficulty_dropdown.select([btn.text, btn.modifier])
+            )
+            self.difficulty_dropdown.add_widget(button)
+        self.ids["button_difficulty"].bind(on_release=self.difficulty_dropdown.open)
+        self.difficulty_dropdown.bind(on_select=self.set_difficulty)
+        self.open()
+
+    def set_difficulty(self, button, difficulty):
+        self.ids["button_difficulty"].text = difficulty[0]
+        self.difficulty = difficulty[1]
+        self.modify_current_value()
+
+    def modify_current_value(self):
+        self.current_value = self.base_value + self.difficulty
+
+    def roll_test(self):
+        roll = random.randint(1,100)
+        if roll <= self.current_value:
+            self.success = "yes"
+        else:
+            self.success = "no"
+        self.ids["label_result"].text = str(roll)
+        degrees = abs(self.current_value-roll) // 10
+        self.ids["label_degrees"].text = "{} {}".format(degrees, "Degree" if degrees==1 else "Degrees")
+
+    def on_current_value(self, instance, value):
+        self.ids["label_current_value"].text = str(value)
 
 
 class InfoPopup(Popup):
@@ -296,6 +367,13 @@ class TalentInfoPopup(InfoPopup):
             talent["short_text"], ", ".join(prerequisits), talent_group, talent["text"]
         )
         super(TalentInfoPopup, self).__init__(talent["name"], info_text, **kwargs)
+
+
+class DropdownButton(Button):
+    def __init__(self, difficulty, modifier, **kwargs):
+        super(DropdownButton, self).__init__(**kwargs)
+        self.text = "{0} ({1:+d})".format(difficulty, modifier)
+        self.modifier = modifier
 
 
 class RogueTraderApp(App):

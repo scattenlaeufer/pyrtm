@@ -103,9 +103,12 @@
 			size: self.size
 	orientation: "horizontal"
 	size_hint_y: None
-	height: name.font_size * 2
-	Label:
-		id: name
+	height: button_info.font_size * 2
+	Button:
+		id: button_info
+		background_color: (1, 1, 1, 1) if root.bg else (.8, .8, .8, 1)
+		text: "Info"
+		on_press: root.skill_info()
 		text_size: self.width - 20, self.height
 		valign: "center"
 	Label: 
@@ -114,24 +117,20 @@
 	Label:
 		id: status
 		size_hint_x: .2
-	Label:
-		id: label_skill_value
-		size_hint_x: .2
 	Button:
 		id: button_test
 		text: "Test"
 		background_color: (1, 1, 1, 1) if root.bg else (.8, .8, .8, 1)
 		size_hint_x: .4
-	Button:
-		id: button_info
-		background_color: (1, 1, 1, 1) if root.bg else (.8, .8, .8, 1)
-		text: "Info"
-		on_press: root.skill_info()
-		size_hint_x: .4
+		on_press: root.do_test()
 
 <StartLayout>:
 	cols: 2
 	spacing: 5
+
+<DropdownButton>:
+	size_hint_y: None
+	height: self.font_size * 2
 
 <InfoPopup>:
 	size_hint: .5, .7
@@ -139,22 +138,77 @@
 		orientation: "vertical"
 		RstDocument:
 			id: label_info
-		#ScrollView:
-		#	#size_hint: 1, None
-		#	BoxLayout:
-		#		orientation: 'vertical'
-		#		#size_hint_y: None
-		#		#height: self.minium_height
-		#		Label:
-		#			id: label_info
-		#			#default_size: None, dp(56)
-		#			#default_size_hint: 1, None
-		#			#size_hint_y: None
-		#			markup: True
-		#			text_size: self.width-20, self.height-20
-		#			valign: 'middle'
-		#			halign: 'left'
 		Button:
 			size_hint: 1, .15
 			text: 'Ok'
 			on_press: root.dismiss()
+
+<TestPopup>:
+	size_hint: .5, .7
+	BoxLayout:
+		orientation: "vertical"
+		GridLayout:
+			cols: 2
+			BoxLayout:
+				orientation: "horizontal"
+				size_hint_y: None
+				height: button_difficulty.font_size * 2
+				Label:
+					text: "Difficulty"
+				Button:
+					text: "Chellenging (+0)"
+					id: button_difficulty
+		Label:
+			size_hint_y: None
+			height: button_roll_test.font_size
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: button_roll_test.font_size * 3
+			BoxLayout:
+				orientation: "horizontal"
+				Label:
+					text: "Current value:"
+				Label:
+					id: label_current_value
+					size_hint_x: .5
+					text: "0"
+			Button:
+				id: button_roll_test
+				text: "Roll!"
+				on_press: root.roll_test()
+			Label:
+				canvas.before:
+					Color:
+						rgba: (0, .5, 0, 1) if root.success == "yes" else (.5, 0, 0, 1) if root.success == "no" else (.155, .155, .155, 1)
+					Rectangle:
+						pos: self.pos
+						size: self.size
+				id: label_result
+			Label:
+				canvas.before:
+					Color:
+						rgba: (0, .5, 0, 1) if root.success == "yes" else (.5, 0, 0, 1) if root.success == "no" else (.155, .155, .155, 1)
+					Rectangle:
+						pos: self.pos
+						size: self.size
+				id: label_degrees
+		Label:
+			size_hint_y: None
+			height: button_roll_test.font_size
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: button_cancel.font_size * 3
+			Button:
+				id: button_cancel
+				text: "Cancel"
+				on_press: root.dismiss()
+			# Button:
+			# 	id: button_info
+			# 	text: "Info"
+			# 	on_press: root.dismiss()
+			Button:
+				id: button_ok
+				text: "Ok"
+				on_press: root.dismiss()
