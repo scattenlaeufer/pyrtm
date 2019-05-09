@@ -93,6 +93,7 @@ default_character = {
         "ambidextrous",
         "renowned_warrant",
     ],
+    "implants": [{"key": "auger_arrays", "quality": "good", "on": False}],
 }
 
 
@@ -108,7 +109,6 @@ class MainBox(BoxLayout):
         self.character = default_character
         start_layout = StartLayout(self.data)
         self.ids["all_talents"].add_widget(start_layout)
-        self.ids["blubb"].text = str(self.ids["skill_box"].parent.height)
         for key in characteristics.keys():
             self.ids[key].set_text(default_character["characteristics"][key])
         self.ids["skill_box"].height = 0
@@ -268,7 +268,9 @@ class TestPopup(Popup):
         for difficulty in test_difficulties:
             button = DropdownButton(*difficulty)
             button.bind(
-                on_release=lambda btn: self.difficulty_dropdown.select([btn.text, btn.modifier])
+                on_release=lambda btn: self.difficulty_dropdown.select(
+                    [btn.text, btn.modifier]
+                )
             )
             self.difficulty_dropdown.add_widget(button)
         self.ids["button_difficulty"].bind(on_release=self.difficulty_dropdown.open)
@@ -284,14 +286,16 @@ class TestPopup(Popup):
         self.current_value = self.base_value + self.difficulty
 
     def roll_test(self):
-        roll = random.randint(1,100)
+        roll = random.randint(1, 100)
         if roll <= self.current_value:
             self.success = "yes"
         else:
             self.success = "no"
         self.ids["label_result"].text = str(roll)
-        degrees = abs(self.current_value-roll) // 10
-        self.ids["label_degrees"].text = "{} {}".format(degrees, "Degree" if degrees==1 else "Degrees")
+        degrees = abs(self.current_value - roll) // 10
+        self.ids["label_degrees"].text = "{} {}".format(
+            degrees, "Degree" if degrees == 1 else "Degrees"
+        )
 
     def on_current_value(self, instance, value):
         self.ids["label_current_value"].text = str(value)

@@ -55,18 +55,31 @@
 							size_hint_y: None
 							minimun_height: self.setter("height")
 				BoxLayout:
-					orientation: 'vertical'
-					Label:
-						id: blubb
-						text: 'test'
-						size_hint_y: .1
-					ScrollView:
-						view: box_skills
-						BoxLayout:
-							id: box_skills
-							orientation: "vertical"
+					orientation: "vertical"
+					BoxLayout:
+						orientation: 'vertical'
+						Label:
+							text: 'Talents'
 							size_hint_y: None
-							minium_height: self.setter("height")
+							height: self.font_size * 2
+						ScrollView:
+							BoxLayout:
+								id: talents_box
+								orientation: "vertical"
+								size_hint_y: None
+								minimum_heihgt: self.setter("height")
+					BoxLayout:
+						orientation: 'vertical'
+						Label:
+							text: 'Implants'
+							size_hint_y: None
+							height: self.font_size * 2
+						ScrollView:
+							BoxLayout:
+								id: implants_box
+								orientation: "vertical"
+								size_hint_y: None
+								minimum_heihgt: self.setter("height")
 		TabbedPanelItem:
 			id: all_talents
 			text: 'all talents'
