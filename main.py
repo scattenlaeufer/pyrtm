@@ -344,21 +344,21 @@ class SkillInfoPopup(InfoPopup):
 
 class TalentInfoPopup(InfoPopup):
     def __init__(self, talent, **kwargs):
-        prerequisits = []
-        if len(talent["prerequisits"]["characteristics"]) > 0:
-            for key, value in talent["prerequisits"]["characteristics"].items():
-                prerequisits.append("{}: {}".format(characteristics[key], value))
-        if len(talent["prerequisits"]["skills"]) > 0:
-            for value in talent["prerequisits"]["skills"]:
-                prerequisits.append(value)
-        if len(talent["prerequisits"]["talents"]) > 0:
-            for value in talent["prerequisits"]["talents"]:
-                prerequisits.append(value)
-        if len(talent["prerequisits"]["other"]) > 0:
-            for value in talent["prerequisits"]["other"]:
-                prerequisits.append(value)
-        if len(prerequisits) == 0:
-            prerequisits.append("None")
+        prerequisites = []
+        if len(talent["prerequisites"]["characteristics"]) > 0:
+            for key, value in talent["prerequisites"]["characteristics"].items():
+                prerequisites.append("{}: {}".format(characteristics[key], value))
+        if len(talent["prerequisites"]["skills"]) > 0:
+            for value in talent["prerequisites"]["skills"]:
+                prerequisites.append(value)
+        if len(talent["prerequisites"]["talents"]) > 0:
+            for value in talent["prerequisites"]["talents"]:
+                prerequisites.append(value)
+        if len(talent["prerequisites"]["other"]) > 0:
+            for value in talent["prerequisites"]["other"]:
+                prerequisites.append(value)
+        if len(prerequisites) == 0:
+            prerequisites.append("None")
 
         talent_group = ""
         if talent["talent_group"]:
@@ -367,8 +367,8 @@ class TalentInfoPopup(InfoPopup):
                 + ", ".join(talent["talent_group"])
                 + "\n\n----\n\n"
             )
-        info_text = "{}\n\n----\n\n[b]Prerequisits:[/b] {}\n\n----\n\n{}{}".format(
-            talent["short_text"], ", ".join(prerequisits), talent_group, talent["text"]
+        info_text = "{}\n\n----\n\n[b]Prerequisites:[/b] {}\n\n----\n\n{}{}".format(
+            talent["short_text"], ", ".join(prerequisites), talent_group, talent["text"]
         )
         super(TalentInfoPopup, self).__init__(talent["name"], info_text, **kwargs)
 
