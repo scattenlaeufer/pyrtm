@@ -3,6 +3,9 @@ SOURCE=main.py
 KV=roguetrader.kv
 BUILDOZER=buildozer.spec
 
+main: data/rogue_trader_data.json
+	python3 main.py
+
 $(APK): $(SOURCE) $(KV) $(BUILDOZER) data/rogue_trader_data.json
 	buildozer android debug
 
