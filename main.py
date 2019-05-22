@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 from kivy.app import App
+from kivy.factory import Factory
 from kivy.storage.jsonstore import JsonStore
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.dropdown import DropDown
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
+from kivy.uix.switch import Switch
 from kivy.properties import BooleanProperty, NumericProperty, OptionProperty
 import os
 import random
@@ -109,8 +111,12 @@ class MainBox(BoxLayout):
         self.character = default_character
         start_layout = StartLayout(self.data)
         self.ids["all_talents"].add_widget(start_layout)
+
+        # set characteristics
         for key in characteristics.keys():
             self.ids[key].set_text(default_character["characteristics"][key])
+
+        # add skills to the charakter screen
         self.ids["skill_box"].height = 0
         bg = True
         self.skill_box_dict = {}
@@ -162,6 +168,53 @@ class MainBox(BoxLayout):
                 self.ids["skill_box"].height += box.height
                 self.ids["skill_box"].add_widget(box)
                 self.skill_box_dict[key] = box
+
+        # add talents to the character screen
+        for talent in self.character["talents"]:
+            if type(talent) == list:
+                key = talent[0]
+                groups = talent[1:]
+            else:
+                key = talent
+                groups = []
+            button = Factory.TalentButton(
+                text=f'{self.data["talents"][key]["name"]}'
+                if len(groups) == 0
+                else f'{self.data["talents"][key]["name"]} ({", ".join(groups)})'
+            )
+            self.ids["talents_box"].add_widget(button)
+            self.ids["talents_box"].height += button.height
+
+            # handle talented
+            if key == "talented":
+                for skill in groups:
+                    for skill_key, skill_data in self.data["skills"].items():
+                        if skill_data["name"] == skill:
+                            break
+                    self.skill_box_dict[skill_key].skill_value += 10
+                    self.skill_box_dict[skill_key].modifier_list.append(
+                        {
+                            "name": f"Talented ({skill})",
+                            "bonus": 10,
+                            "type": "talent",
+                            "on": True,
+                        }
+                    )
+
+        # add implants to the character srceen
+        self.ids["implants_box"].height = 0
+        for implant in self.character["implants"]:
+            modifier_list = []
+            for modifier in self.data["implants"][implant["key"]]["bonus"]:
+                modifier_list.append([self.skill_box_dict[modifier[0]], modifier[1]])
+            implant_box = ImplantBox(
+                self.data["implants"][implant["key"]],
+                implant["on"],
+                implant["quality"],
+                modifier_list,
+            )
+            self.ids["implants_box"].add_widget(implant_box)
+            self.ids["implants_box"].height += implant_box.height
 
     def characteristics_test(self, instance):
         InfoPopup("test", instance.text).open()
@@ -217,9 +270,10 @@ class SkillBox(BoxLayout):
         status,
         bg,
         name=None,
-        **kwargs
+        **kwargs,
     ):
         super(SkillBox, self).__init__(**kwargs)
+        self.modifier_list = []
         self.bg = bg
         self.skill = skill
         if name:
@@ -249,7 +303,49 @@ class SkillBox(BoxLayout):
         self.ids["button_test"].text = str(value)
 
     def do_test(self):
-        TestPopup(self.ids["button_info"].text, self.skill_value)
+        TestPopup(self.ids["button_info"].text, self.skill_value, self.modifier_list)
+
+
+class ImplantBox(BoxLayout):
+    def __init__(self, implant, status, quality, modifier_list, **kwargs):
+        super(ImplantBox, self).__init__(**kwargs)
+        self.implant = implant
+        self.modifier_list = modifier_list
+        for skill_box, bonus in self.modifier_list:
+            skill_box.modifier_list.append(
+                {
+                    "name": self.implant["name"],
+                    "bonus": bonus,
+                    "type": "implant",
+                    "on": self,
+                }
+            )
+        self.ids["button_name"].text = implant["name"]
+        self.ids["label_quality"].text = quality
+        self.ids["switch_on"].bind(active=self.switch_implant)
+        self.ids["switch_on"].active = status
+
+    def button_info_press(self):
+        ItemInfoPopup(self.implant)
+
+    def switch_implant(self, instance, on):
+        if on:
+            for modifier in self.modifier_list:
+                modifier[0].skill_value += modifier[1]
+        else:
+            for modifier in self.modifier_list:
+                modifier[0].skill_value -= modifier[1]
+
+
+class ModifierBox(BoxLayout):
+    def __init__(self, modifier, **kwargs):
+        super(ModifierBox, self).__init__(**kwargs)
+        self.bonus = modifier["bonus"]
+        self.ids["label_name"].text = modifier["name"]
+        if modifier["type"] == "implant":
+            self.ids["checkbox_on"].active = modifier["on"].ids["switch_on"].active
+        else:
+            self.ids["checkbox_on"].active = modifier["on"]
 
 
 class TestPopup(Popup):
@@ -262,6 +358,7 @@ class TestPopup(Popup):
         self.title = "{} Test".format(title)
         self.base_value = base_value
         self.difficulty = 0
+        self.misc_mod = 0
         self.current_value = self.base_value
         self.modifier = modifier
         self.difficulty_dropdown = DropDown()
@@ -275,15 +372,34 @@ class TestPopup(Popup):
             self.difficulty_dropdown.add_widget(button)
         self.ids["button_difficulty"].bind(on_release=self.difficulty_dropdown.open)
         self.difficulty_dropdown.bind(on_select=self.set_difficulty)
+        self.ids["modifier_box"].height = 0
+        for mod in self.modifier:
+            modifier_box = ModifierBox(mod)
+            modifier_box.ids["checkbox_on"].bind(active=self.modify_current_value)
+            self.ids["modifier_box"].add_widget(modifier_box)
+            self.ids["modifier_box"].height += modifier_box.height
         self.open()
 
     def set_difficulty(self, button, difficulty):
         self.ids["button_difficulty"].text = difficulty[0]
+        difficulty_change = difficulty[1] - self.difficulty
         self.difficulty = difficulty[1]
-        self.modify_current_value()
+        self.current_value += difficulty_change
 
-    def modify_current_value(self):
-        self.current_value = self.base_value + self.difficulty
+    def set_misc_modifier(self, textinput, misc_mod):
+        try:
+            misc_mod = int(misc_mod)
+        except ValueError:
+            misc_mod = 0
+        misc_mod_diff = misc_mod - self.misc_mod
+        self.misc_mod = misc_mod
+        self.current_value += misc_mod_diff
+
+    def modify_current_value(self, instance, on):
+        if on:
+            self.current_value += instance.parent.bonus
+        else:
+            self.current_value -= instance.parent.bonus
 
     def roll_test(self):
         roll = random.randint(1, 100)
@@ -371,6 +487,14 @@ class TalentInfoPopup(InfoPopup):
             talent["short_text"], ", ".join(prerequisites), talent_group, talent["text"]
         )
         super(TalentInfoPopup, self).__init__(talent["name"], info_text, **kwargs)
+
+
+class ItemInfoPopup(InfoPopup):
+    def __init__(self, item, **kwargs):
+        info_text = "Availability: {}\n\n----\n\n{}".format(
+            item["availability"], item["text"]
+        )
+        super(ItemInfoPopup, self).__init__(item["name"], info_text, **kwargs)
 
 
 class DropdownButton(Button):

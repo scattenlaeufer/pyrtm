@@ -3,7 +3,7 @@
 	TabbedPanel:
 		do_default_tab: False
 		TabbedPanelItem:
-			text: 'test'
+			text: 'General'
 			BoxLayout:
 				orientation: 'horizontal'
 				BoxLayout:
@@ -66,6 +66,7 @@
 							BoxLayout:
 								id: talents_box
 								orientation: "vertical"
+								height: 0
 								size_hint_y: None
 								minimum_heihgt: self.setter("height")
 					BoxLayout:
@@ -90,22 +91,18 @@
 	valign: "center"
 	halign: "center"
 
-<CharacteristicNameLabel@Label>:
-	size_hint_y: .4
-	valign: 'center'
-	halign: 'center'
-
-<CharacteristicValueLabel@Label>:
-	font_size: pt(15)
-	markup: True
-	text: '[b]2[/b]5'
-
 <CharacteristicLayout>:
 	orientation: "vertical"
 	CharacteristicNameLabel:
 		id: name
 	characteristicValueLabel
 		id:value
+
+<TalentButton@Button>:
+	size_hint_y: None
+	height: self.font_size * 2
+	text_size: self.width - self.font_size * 2, self.height
+	valign: "center"
 
 <SkillBox>:
 	canvas.before:
@@ -122,7 +119,7 @@
 		background_color: (1, 1, 1, 1) if root.bg else (.8, .8, .8, 1)
 		text: "Info"
 		on_press: root.skill_info()
-		text_size: self.width - 20, self.height
+		text_size: self.width - self.font_size * 2, self.height
 		valign: "center"
 	Label: 
 		id: characteristic
@@ -136,6 +133,39 @@
 		background_color: (1, 1, 1, 1) if root.bg else (.8, .8, .8, 1)
 		size_hint_x: .4
 		on_press: root.do_test()
+
+<ImplantBox>:
+	orientation: "horizontal"
+	size_hint_y: None
+	height: button_name.font_size * 2
+	Switch
+		id: switch_on
+		size_hint_x: None
+		width: button_name.font_size * 6.5
+	Button:
+		id: button_name
+		text: "Implant X"
+		text_size: self.width - self.font_size, self.height
+		valign: "center"
+		on_press: root.button_info_press()
+	BoxLayout:
+		size_hint_x: .6
+		Label:
+			text: "Quality:"
+		Label:
+			id: label_quality
+
+<ModifierBox>:
+	orientation: "horizontal"
+	size_hint_y: None
+	height: label_name.font_size * 2
+	CheckBox:
+		id: checkbox_on
+		size_hint_x: .2
+	Label:
+		id: label_name
+		text_size: self.width - self.font_size, self.height
+		valign: "center"
 
 <StartLayout>:
 	cols: 2
@@ -171,6 +201,26 @@
 				Button:
 					text: "Chellenging (+0)"
 					id: button_difficulty
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: misc_label.font_size * 2
+			Label:
+				text: "Misc Modifier:"
+				id: misc_label
+			TextInput:
+				id: textinput_misc
+				text: ""
+				multiline: False
+				input_filter: "int"
+				valign: "center"
+				on_text: root.set_misc_modifier(self, self.text)
+		ScrollView:
+			BoxLayout:
+				id: modifier_box
+				orientation: "vertical"
+				size_hint_y: None
+				minimun_height: self.setter("height")
 		Label:
 			size_hint_y: None
 			height: button_roll_test.font_size
