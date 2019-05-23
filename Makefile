@@ -14,3 +14,6 @@ deploy: $(APK)
 
 data/rogue_trader_data.json: data/rogue_trader_data.py
 	data/rogue_trader_data.py
+
+debug: data/rogue_trader_data.json
+	python3 -m pdb main.py
