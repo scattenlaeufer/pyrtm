@@ -96,7 +96,14 @@ default_character = {
         "renowned_warrant",
     ],
     "implants": [{"key": "auger_arrays", "quality": "good", "on": False}],
+    "weapons": [
+        {"key": "plasma_pistol", "clip": 10, "clips": 5},
+        {"key": "power_sword"},
+    ],
 }
+
+
+data = {}
 
 
 class MainBox(BoxLayout):
@@ -108,6 +115,8 @@ class MainBox(BoxLayout):
         data_json = JsonStore(os.path.join("data/rogue_trader_data.json"))
         for key in data_json.keys():
             self.data[key] = data_json[key]
+        global data
+        data = self.data
         self.character = default_character
         start_layout = StartLayout(self.data)
         self.ids["all_talents"].add_widget(start_layout)
@@ -215,6 +224,12 @@ class MainBox(BoxLayout):
             )
             self.ids["implants_box"].add_widget(implant_box)
             self.ids["implants_box"].height += implant_box.height
+
+        # add weapons to the battle screen
+        for weapon in self.character["weapons"]:
+            weapon_box = WeaponBox(weapon)
+            self.ids["weapon_box"].add_widget(weapon_box)
+            self.ids["weapon_box"].height += weapon_box.height
 
     def characteristics_test(self, instance):
         InfoPopup("test", instance.text).open()
@@ -335,6 +350,73 @@ class ImplantBox(BoxLayout):
         else:
             for modifier in self.modifier_list:
                 modifier[0].skill_value -= modifier[1]
+
+
+class WeaponBox(BoxLayout):
+    def __init__(self, weapon, **kwargs):
+        super(WeaponBox, self).__init__(**kwargs)
+        self.ids["name"].text = data["weapons"][weapon["key"]]["name"]
+        self.ids["label_class"].text = "Class: {}".format(
+            data["weapons"][weapon["key"]]["class"]
+        )
+        self.ids["label_pen"].text = "Pen: {}".format(
+            data["weapons"][weapon["key"]]["pen"]
+        )
+        damage_list = []
+        if data["weapons"][weapon["key"]]["damage"]["d5"]:
+            damage_list.append(
+                str(data["weapons"][weapon["key"]]["damage"]["d5"]) + "d5"
+            )
+        if data["weapons"][weapon["key"]]["damage"]["d10"]:
+            damage_list.append(
+                str(data["weapons"][weapon["key"]]["damage"]["d10"]) + "d10"
+            )
+        damage_list += [
+            data["weapons"][weapon["key"]]["damage"]["+"],
+            data["weapons"][weapon["key"]]["damage"]["type"],
+        ]
+        self.ids["label_damage"].text = "Dam: {}+{} {}".format(*damage_list)
+        self.ids["label_weight"].text = "Weight: {}kg".format(
+            data["weapons"][weapon["key"]]["weight"]
+        )
+        self.ids["label_availability"].text = "({})".format(
+            data["weapons"][weapon["key"]]["availability"]
+        )
+        if not data["weapons"][weapon["key"]]["class"] in ["Melee"]:
+            self.ids["label_range"].text = "Range: {}m".format(
+                data["weapons"][weapon["key"]]["range"]
+            )
+            self.ids["label_rof"].text = "RoF: {} / {} / {}".format(
+                *data["weapons"][weapon["key"]]["rof"]
+            )
+            self.ids["label_reload"].text = "Reload: {}".format(
+                data["weapons"][weapon["key"]]["reload"]
+            )
+            self.ids["label_clip"].text = "Clip: {}/{}".format(
+                weapon["clip"], data["weapons"][weapon["key"]]["clip"]
+            )
+        if not (
+            data["weapons"][weapon["key"]]["class"] in ["Melee"]
+            or "Unwieldy" in data["weapons"][weapon["key"]]["special"]
+        ):
+            self.ids["button_parry"].disabled = True
+            self.ids["button_parry"].opacity = 0
+        special_list = []
+        for special in data["weapons"][weapon["key"]]["special"]:
+            button = Factory.SpecialQualityButton(text=special)
+            special_list.append(button)
+        special_list.sort(key=lambda a: a.text)
+        for special in special_list:
+            self.ids["special_box"].add_widget(special)
+        self.height = self.ids["name"].font_size * (
+            9
+            + 2.5
+            * (
+                len(self.ids["special_box"].children) // self.ids["special_box"].cols
+                + int(bool(len(self.ids["special_box"].children)))
+                % self.ids["special_box"].cols
+            )
+        )
 
 
 class ModifierBox(BoxLayout):

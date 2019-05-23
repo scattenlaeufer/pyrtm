@@ -3,6 +3,20 @@
 	TabbedPanel:
 		do_default_tab: False
 		TabbedPanelItem:
+			text: "Battle"
+			BoxLayout:
+				orientation: "horizontal"
+				ScrollView:
+					BoxLayout:
+						id: weapon_box
+						orientation: "vertical"
+						height: 0
+						size_hint_y: None
+						minimun_height: self.setter("height")
+				BoxLayout:
+					Label:
+						text: "blubb"
+		TabbedPanelItem:
 			text: 'General'
 			BoxLayout:
 				orientation: 'horizontal'
@@ -68,7 +82,7 @@
 								orientation: "vertical"
 								height: 0
 								size_hint_y: None
-								minimum_heihgt: self.setter("height")
+								minimun_height: self.setter("height")
 					BoxLayout:
 						orientation: 'vertical'
 						Label:
@@ -103,6 +117,11 @@
 	height: self.font_size * 2
 	text_size: self.width - self.font_size * 2, self.height
 	valign: "center"
+
+<SpecialQualityButton@Button>:
+	text_size: self.width, self.height
+	valign: "center"
+	halign: "center"
 
 <SkillBox>:
 	canvas.before:
@@ -154,6 +173,71 @@
 			text: "Quality:"
 		Label:
 			id: label_quality
+
+<WeaponBox>:
+	orientation: "vertical"
+	size_hint_y: None
+	#height: name.font_size * 15
+	Button:
+		id: name
+		size_hint_y: None
+		height: self.font_size * 2.5
+	BoxLayout:
+		orientation: "horizontal"
+		size_hint_y: None
+		height: name.font_size * 2
+		Label:
+			id: label_class
+		Label:
+			id: label_range
+		Label:
+			id: label_rof
+		Label:
+			id: label_damage
+		Label:
+			id: label_pen
+	BoxLayout:
+		orientaiton: "horizontal"
+		size_hint_y: None
+		height: name.font_size * 2
+		Label:
+			id: label_clip
+		Label:
+			id: label_reload
+		Label:
+			id: label_weight
+		Label:
+			id: label_availability
+		Label:
+			id: blubb
+	GridLayout:
+		id: special_box
+		cols: 5
+		col_force_default: True
+		col_default_width: self.width // 5
+		row_force_default: True
+		row_default_height: name.font_size * 2.5
+		Label:
+			text: "Special Qualities:"
+			text_size: self.width, self.height
+			valign: "center"
+			halign: "center"
+	BoxLayout:
+		orientation: "horizontal"
+		size_hint_y: None
+		height: name.font_size * 2.5
+		Button:
+			id: button_attack
+			text: "Attack"
+		Button:
+			id: button_dodge
+			text: "Dodge"
+		Button:
+			id: button_parry
+			text: "Parry"
+		Button:
+			id: button_take_damage
+			text: "Take Damage"
 
 <ModifierBox>:
 	orientation: "horizontal"
