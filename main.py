@@ -12,6 +12,7 @@ from kivy.uix.switch import Switch
 from kivy.properties import BooleanProperty, NumericProperty, OptionProperty
 import os
 import random
+import math
 
 # from jnius import autoclass
 
@@ -53,7 +54,7 @@ default_character = {
     "home_world": "Noble Born",
     "motivation": "Prestige",
     "dascription": "blubb",
-    "exp": [7000, 0],
+    "exp": [7300, 100],
     "characteristics": {
         "ws": [48, 2],
         "bs": [40, 0],
@@ -80,6 +81,7 @@ default_character = {
         "scholastic_lore": {"Astromancy": "t"},
         "secret_tongue": {"Rogue Trader": "t"},
         "speak_language": {"High Gothic": "+10", "Low Gothic": "t", "Trader Cant": "t"},
+        "tech-use": "t",
     },
     "talents": [
         "paranoia",
@@ -123,7 +125,10 @@ class MainBox(BoxLayout):
 
         # set characteristics
         for key in characteristics.keys():
-            self.ids[key].set_text(default_character["characteristics"][key])
+            self.ids[key].set_text(self.character["characteristics"][key])
+            self.ids[key].key = self.data["characteristics"][key]["name"]
+            self.ids[key].value = self.character["characteristics"][key]
+            self.ids[key].bind(on_press=lambda inst: TestPopup(inst.key, inst.value))
 
         # add skills to the charakter screen
         self.ids["skill_box"].height = 0
@@ -186,7 +191,7 @@ class MainBox(BoxLayout):
             else:
                 key = talent
                 groups = []
-            button = Factory.TalentButton(
+            button = TalentButton(
                 text=f'{self.data["talents"][key]["name"]}'
                 if len(groups) == 0
                 else f'{self.data["talents"][key]["name"]} ({", ".join(groups)})'
@@ -209,6 +214,7 @@ class MainBox(BoxLayout):
                             "on": True,
                         }
                     )
+        self.ids["talents_box"].children.sort()
 
         # add implants to the character srceen
         self.ids["implants_box"].height = 0
@@ -227,7 +233,12 @@ class MainBox(BoxLayout):
 
         # add weapons to the battle screen
         for weapon in self.character["weapons"]:
-            weapon_box = WeaponBox(weapon)
+            weapon_box = WeaponBox(
+                weapon,
+                self.character["characteristics"]["ws"][0],
+                self.character["characteristics"]["bs"][0],
+                self.skill_box_dict["dodge"].skill_value,
+            )
             self.ids["weapon_box"].add_widget(weapon_box)
             self.ids["weapon_box"].height += weapon_box.height
 
@@ -270,6 +281,11 @@ class CharacteristicButton(Button):
         self.text = self._text.format(
             int(self.font_size * 2), characteristic[0], characteristic[1]
         )
+
+
+class TalentButton(Button):
+    def __lt__(self, other):
+        return other.text < self.text
 
 
 class SkillBox(BoxLayout):
@@ -353,8 +369,17 @@ class ImplantBox(BoxLayout):
 
 
 class WeaponBox(BoxLayout):
-    def __init__(self, weapon, **kwargs):
+    def __init__(self, weapon, ws, bs, dodge, bonus={}, **kwargs):
         super(WeaponBox, self).__init__(**kwargs)
+        self.weapon = weapon
+        self.ws = ws
+        self.bs = bs
+        self.dodge = dodge
+        self.bonus = bonus
+
+        info_text = ""
+        info_text += "**Class**: {}\n\n".format(data["weapons"][weapon["key"]]["class"])
+
         self.ids["name"].text = data["weapons"][weapon["key"]]["name"]
         self.ids["label_class"].text = "Class: {}".format(
             data["weapons"][weapon["key"]]["class"]
@@ -379,9 +404,9 @@ class WeaponBox(BoxLayout):
         self.ids["label_weight"].text = "Weight: {}kg".format(
             data["weapons"][weapon["key"]]["weight"]
         )
-        self.ids["label_availability"].text = "({})".format(
-            data["weapons"][weapon["key"]]["availability"]
-        )
+        # self.ids["label_availability"].text = "({})".format(
+        #     data["weapons"][weapon["key"]]["availability"]
+        # )
         if not data["weapons"][weapon["key"]]["class"] in ["Melee"]:
             self.ids["label_range"].text = "Range: {}m".format(
                 data["weapons"][weapon["key"]]["range"]
@@ -392,7 +417,7 @@ class WeaponBox(BoxLayout):
             self.ids["label_reload"].text = "Reload: {}".format(
                 data["weapons"][weapon["key"]]["reload"]
             )
-            self.ids["label_clip"].text = "Clip: {}/{}".format(
+            self.ids["label_clip"].text = "Clip: {} / {}".format(
                 weapon["clip"], data["weapons"][weapon["key"]]["clip"]
             )
         if not (
@@ -403,7 +428,12 @@ class WeaponBox(BoxLayout):
             self.ids["button_parry"].opacity = 0
         special_list = []
         for special in data["weapons"][weapon["key"]]["special"]:
-            button = Factory.SpecialQualityButton(text=special)
+            button = Factory.WeaponBoxButton(text=special)
+            button.bind(
+                on_press=lambda inst: InfoPopup(
+                    inst.text, data["weapons"]["special_qualities"][inst.text]
+                )
+            )
             special_list.append(button)
         special_list.sort(key=lambda a: a.text)
         for special in special_list:
@@ -411,12 +441,47 @@ class WeaponBox(BoxLayout):
         self.height = self.ids["name"].font_size * (
             9
             + 2.5
-            * (
-                len(self.ids["special_box"].children) // self.ids["special_box"].cols
-                + int(bool(len(self.ids["special_box"].children)))
-                % self.ids["special_box"].cols
+            * math.ceil(
+                len(self.ids["special_box"].children) / self.ids["special_box"].cols
             )
         )
+        info_text += "**Weight**: {}kg\n\n".format(
+            data["weapons"][weapon["key"]]["weight"]
+        )
+        info_text += "**Availability**: {}\n\n".format(
+            data["weapons"][weapon["key"]]["availability"]
+        )
+        info_text += "{}\n\n----\n\n**{}**\n\n{}".format(
+            data["weapons"][self.weapon["key"]]["text"],
+            data["weapons"][self.weapon["key"]]["type"],
+            data["weapons"]["general"][data["weapons"][self.weapon["key"]]["type"]],
+        )
+        self.ids["name"].bind(
+            on_press=lambda inst: InfoPopup(
+                data["weapons"][self.weapon["key"]]["name"], info_text
+            )
+        )
+
+    def attack_test(self):
+        if data["weapons"][self.weapon["key"]]["class"] in ["Melee"]:
+            test_popup = TestPopup("Weapon Skill", self.ws)
+        else:
+            test_popup = TestPopup("Ballistic Skill", self.bs)
+        test_popup.ids["button_box"].add_widget(Button(text="Damage"))
+
+    def dodge_test(self):
+        TestPopup("Dodge", self.dodge)
+
+    def parry_test(self):
+        bonus_list = []
+        bonus = 0
+        if "Balanced" in data["weapons"][self.weapon["key"]]["special"]:
+            bonus_list.append({"name": "Balanced", "bonus": 10, "type": "other", "on": True}),
+            bonus += 10
+        if "Mordian-pattern" in data["weapons"][self.weapon["key"]]["name"]:
+            bonus_list.append({"name": "Mordian-pattern", "bonus": 5, "type": "other", "on": True})
+            bonus += 5
+        TestPopup("Parry", self.ws+bonus, bonus_list)
 
 
 class ModifierBox(BoxLayout):

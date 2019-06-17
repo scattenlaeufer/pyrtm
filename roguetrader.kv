@@ -93,8 +93,9 @@
 							BoxLayout:
 								id: implants_box
 								orientation: "vertical"
+								height: 0
 								size_hint_y: None
-								minimum_heihgt: self.setter("height")
+								minimun_height: self.setter("height")
 		TabbedPanelItem:
 			id: all_talents
 			text: 'all talents'
@@ -118,7 +119,7 @@
 	text_size: self.width - self.font_size * 2, self.height
 	valign: "center"
 
-<SpecialQualityButton@Button>:
+<WeaponBoxButton@Button>:
 	text_size: self.width, self.height
 	valign: "center"
 	halign: "center"
@@ -186,8 +187,8 @@
 		orientation: "horizontal"
 		size_hint_y: None
 		height: name.font_size * 2
-		Label:
-			id: label_class
+		# Label:
+		# 	id: label_class
 		Label:
 			id: label_range
 		Label:
@@ -201,15 +202,17 @@
 		size_hint_y: None
 		height: name.font_size * 2
 		Label:
+			id: label_class
+		Label:
 			id: label_clip
 		Label:
 			id: label_reload
 		Label:
 			id: label_weight
-		Label:
-			id: label_availability
-		Label:
-			id: blubb
+		# Label:
+		# 	id: label_availability
+		# Label:
+		# 	id: blubb
 	GridLayout:
 		id: special_box
 		cols: 5
@@ -229,12 +232,15 @@
 		Button:
 			id: button_attack
 			text: "Attack"
+			on_press: root.attack_test()
 		Button:
 			id: button_dodge
 			text: "Dodge"
+			on_press: root.dodge_test()
 		Button:
 			id: button_parry
 			text: "Parry"
+			on_press: root.parry_test()
 		Button:
 			id: button_take_damage
 			text: "Take Damage"
@@ -344,6 +350,7 @@
 			size_hint_y: None
 			height: button_roll_test.font_size
 		BoxLayout:
+			id: button_box
 			orientation: "horizontal"
 			size_hint_y: None
 			height: button_cancel.font_size * 3
