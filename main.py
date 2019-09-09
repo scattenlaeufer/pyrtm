@@ -9,10 +9,13 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.popup import Popup
 from kivy.uix.button import Button
 from kivy.uix.switch import Switch
+from kivy.uix.togglebutton import ToggleButton
 from kivy.properties import BooleanProperty, NumericProperty, OptionProperty
 import os
 import random
 import math
+import enum
+import pathlib
 
 # from jnius import autoclass
 
@@ -115,7 +118,15 @@ default_character = {
 }
 
 
+class DoSAlgorithm(enum.IntFlag):
+    ROGUE_TRADER = enum.auto()
+    MIXED = enum.auto()
+    DARK_HERESY_2 = enum.auto()
+
+
 data = {}
+config = None
+default_config = {"dos_algorithm": DoSAlgorithm.ROGUE_TRADER.value}
 
 
 class MainBox(BoxLayout):
@@ -129,6 +140,26 @@ class MainBox(BoxLayout):
             self.data[key] = data_json[key]
         global data
         data = self.data
+        user_dir = pathlib.Path(App.get_running_app().user_data_dir)
+
+        # Load config
+        global config
+        config = JsonStore(user_dir / "config.json")
+        if not config.exists("config"):
+            config.put("config", **default_config)
+
+        dos_algorithm = DoSAlgorithm(config.get("config")["dos_algorithm"])
+        if dos_algorithm == DoSAlgorithm.ROGUE_TRADER:
+            self.ids["dos_rt"].state = "down"
+        elif dos_algorithm == DoSAlgorithm.MIXED:
+            self.ids["dos_mixed"].state = "down"
+        else:
+            self.ids["dos_dh2"].state = "down"
+
+        self.ids["dos_rt"].algorithm = DoSAlgorithm.ROGUE_TRADER
+        self.ids["dos_mixed"].algorithm = DoSAlgorithm.MIXED
+        self.ids["dos_dh2"].algorithm = DoSAlgorithm.DARK_HERESY_2
+
         self.character = default_character
         start_layout = StartLayout(self.data)
         self.ids["all_talents"].add_widget(start_layout)
@@ -253,6 +284,7 @@ class MainBox(BoxLayout):
             self.ids["weapon_box"].height += weapon_box.height
 
     def characteristics_test(self, instance):
+        print(instance.text)
         InfoPopup("test", instance.text).open()
 
     def skill_info(self, instance):
@@ -663,6 +695,11 @@ class DropdownButton(Button):
         super(DropdownButton, self).__init__(**kwargs)
         self.text = "{0} ({1:+d})".format(difficulty, modifier)
         self.modifier = modifier
+
+
+class ConfigButton(ToggleButton):
+    def config_action(self):
+        config.put("config", dos_algorithm=self.algorithm.value)
 
 
 class RogueTraderApp(App):
