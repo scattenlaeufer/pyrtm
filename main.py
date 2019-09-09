@@ -104,7 +104,10 @@ default_character = {
         "leap_up",
         ["resistance", "Fear"],
     ],
-    "implants": [{"key": "auger_arrays", "quality": "good", "on": False}],
+    "implants": [
+        {"key": "auger_arrays", "quality": "good", "on": False},
+        {"key": "vitae_supplacement", "quality": "best", "on": True},
+    ],
     "weapons": [
         {"key": "plasma_pistol", "clip": 10, "clips": 5},
         {"key": "power_sword"},
