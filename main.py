@@ -483,12 +483,16 @@ class WeaponBox(BoxLayout):
         bonus_list = []
         bonus = 0
         if "Balanced" in data["weapons"][self.weapon["key"]]["special"]:
-            bonus_list.append({"name": "Balanced", "bonus": 10, "type": "other", "on": True}),
+            bonus_list.append(
+                {"name": "Balanced", "bonus": 10, "type": "other", "on": True}
+            ),
             bonus += 10
         if "Mordian-pattern" in data["weapons"][self.weapon["key"]]["name"]:
-            bonus_list.append({"name": "Mordian-pattern", "bonus": 5, "type": "other", "on": True})
+            bonus_list.append(
+                {"name": "Mordian-pattern", "bonus": 5, "type": "other", "on": True}
+            )
             bonus += 5
-        TestPopup("Parry", self.ws+bonus, bonus_list)
+        TestPopup("Parry", self.ws + bonus, bonus_list)
 
 
 class ModifierBox(BoxLayout):
