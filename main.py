@@ -97,7 +97,7 @@ default_character = {
         "ambidextrous",
         "renowned_warrant",
         ["two-weapon_wielder", "Melee", "Balistic"],
-        "sound_constitution",
+        ["sound_constitution", "3"],
         "quick_draw",
         "jaded",
         "iron_discipline",
