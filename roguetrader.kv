@@ -99,6 +99,23 @@
 		TabbedPanelItem:
 			id: all_talents
 			text: 'all talents'
+		TabbedPanelItem:
+			id: settings
+			text: "Settings"
+			BoxLayout:
+				orientation: "vertical"
+				ToggleButton:
+					text: "Rogue Trader always"
+					group: "dos_algorithm"
+					id: dos_rt
+				ToggleButton:
+					text: "Dark Heresy 2 in Battle | Rogue Trader else"
+					group: "dos_algorithm"
+					id: dos_mixed
+				ToggleButton:
+					text: "Dark Heresy 2 always"
+					group: "dos_algorithm"
+					id: dos_dh2
 
 <CharacteristicButton>:
 	markup: True
