@@ -24,3 +24,6 @@ data/rogue_trader_data.json: data/rogue_trader_data.py
 
 debug: data/rogue_trader_data.json
 	$(POETRY_RUN) python3 -m pdb main.py
+
+test:
+	$(POETRY_RUN) pytest tests.py

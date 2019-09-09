@@ -7,6 +7,7 @@ authors = ["Björn Guth <scatty@bguth.de>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 kivy = "^1.11"
+pytest = "^5.1"
 
 [tool.poetry.dev-dependencies]
 
