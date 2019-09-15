@@ -123,6 +123,11 @@ class DoSAlgorithm(enum.IntFlag):
     DARK_HERESY_2 = enum.auto()
 
 
+class TestType(enum.IntFlag):
+    FIGHT = enum.auto()
+    OTHER = enum.auto()
+
+
 data = {}
 config = None
 default_config = {"dos_algorithm": DoSAlgorithm.ROGUE_TRADER.value}
@@ -505,13 +510,13 @@ class WeaponBox(BoxLayout):
 
     def attack_test(self):
         if data["weapons"][self.weapon["key"]]["class"] in ["Melee"]:
-            test_popup = TestPopup("Weapon Skill", self.ws)
+            test_popup = TestPopup("Weapon Skill", self.ws, test_type=TestType.FIGHT)
         else:
-            test_popup = TestPopup("Ballistic Skill", self.bs)
+            test_popup = TestPopup("Ballistic Skill", self.bs, test_type=TestType.FIGHT)
         test_popup.ids["button_box"].add_widget(Button(text="Damage"))
 
     def dodge_test(self):
-        TestPopup("Dodge", self.dodge)
+        TestPopup("Dodge", self.dodge, test_type=TestType.FIGHT)
 
     def parry_test(self):
         bonus_list = []
@@ -526,7 +531,7 @@ class WeaponBox(BoxLayout):
                 {"name": "Mordian-pattern", "bonus": 5, "type": "other", "on": True}
             )
             bonus += 5
-        TestPopup("Parry", self.ws + bonus, bonus_list)
+        TestPopup("Parry", self.ws + bonus, bonus_list, test_type=TestType.FIGHT)
 
 
 class ModifierBox(BoxLayout):
@@ -545,7 +550,9 @@ class TestPopup(Popup):
     current_value = NumericProperty()
     success = OptionProperty("none", options=["none", "yes", "no"])
 
-    def __init__(self, title, base_value, modifier=[], **kwargs):
+    def __init__(
+        self, title, base_value, modifier=[], test_type=TestType.OTHER, **kwargs
+    ):
         super(TestPopup, self).__init__(**kwargs)
         self.title = "{} Test".format(title)
         self.base_value = base_value
@@ -570,6 +577,17 @@ class TestPopup(Popup):
             modifier_box.ids["checkbox_on"].bind(active=self.modify_current_value)
             self.ids["modifier_box"].add_widget(modifier_box)
             self.ids["modifier_box"].height += modifier_box.height
+
+        dos_config = DoSAlgorithm(config.get("config")["dos_algorithm"])
+        print(dos_config)
+        if dos_config == DoSAlgorithm.DARK_HERESY_2:
+            self.dos_func = utils.calculate_dos_dh2
+        elif dos_config == DoSAlgorithm.ROGUE_TRADER:
+            self.dos_func = utils.calculate_dos_rt
+        if dos_config == DoSAlgorithm.MIXED and test_type == TestType.OTHER:
+            self.dos_func = utils.calculate_dos_rt
+        if dos_config == DoSAlgorithm.MIXED and test_type == TestType.FIGHT:
+            self.dos_func = utils.calculate_dos_dh2
         self.open()
 
     def set_difficulty(self, button, difficulty):
@@ -600,7 +618,7 @@ class TestPopup(Popup):
         else:
             self.success = "no"
         self.ids["label_result"].text = str(roll)
-        degrees = abs(self.current_value - roll) // 10
+        degrees = self.dos_func(self.current_value, roll)
         self.ids["label_degrees"].text = "{} {}".format(
             degrees, "Degree" if degrees == 1 else "Degrees"
         )
