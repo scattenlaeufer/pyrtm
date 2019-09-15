@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+import os
+import random
+import math
+import enum
+import pathlib
 from kivy.app import App
 from kivy.factory import Factory
 from kivy.storage.jsonstore import JsonStore
@@ -11,15 +16,7 @@ from kivy.uix.button import Button
 from kivy.uix.switch import Switch
 from kivy.uix.togglebutton import ToggleButton
 from kivy.properties import BooleanProperty, NumericProperty, OptionProperty
-import os
-import random
-import math
-import enum
-import pathlib
-
 import utils
-
-# from jnius import autoclass
 
 
 test_difficulties = [
