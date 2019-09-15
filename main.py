@@ -167,7 +167,7 @@ class MainBox(BoxLayout):
         for key in characteristics.keys():
             self.ids[key].set_text(self.character["characteristics"][key])
             self.ids[key].key = self.data["characteristics"][key]["name"]
-            self.ids[key].value = self.character["characteristics"][key]
+            self.ids[key].value = self.character["characteristics"][key][0]
             self.ids[key].bind(on_press=lambda inst: TestPopup(inst.key, inst.value))
 
         # add skills to the charakter screen
