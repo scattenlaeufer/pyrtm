@@ -7,7 +7,8 @@ authors = ["Björn Guth <scatty@bguth.de>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 kivy = "^1.11"
-
+pre-commit = "^1.18"
+black = {version = "^18.3-alpha.0", allows-prereleases = true}
 [tool.poetry.dev-dependencies]
 pylint = "^2.3"
 pytest = "^5.1"
