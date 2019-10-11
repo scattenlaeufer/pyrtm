@@ -282,6 +282,7 @@ class MainBox(BoxLayout):
                 weapon,
                 self.character["characteristics"]["ws"][0],
                 self.character["characteristics"]["bs"][0],
+                self.character["characteristics"]["s"][0],
                 self.skill_box_dict["dodge"].skill_value,
             )
             self.ids["weapon_box"].add_widget(weapon_box)
@@ -415,11 +416,12 @@ class ImplantBox(BoxLayout):
 
 
 class WeaponBox(BoxLayout):
-    def __init__(self, weapon, ws, bs, dodge, bonus={}, **kwargs):
+    def __init__(self, weapon, ws, bs, st, dodge, bonus={}, **kwargs):
         super(WeaponBox, self).__init__(**kwargs)
         self.weapon = weapon
         self.ws = ws
         self.bs = bs
+        self.st = st
         self.dodge = dodge
         self.bonus = bonus
 
@@ -510,10 +512,20 @@ class WeaponBox(BoxLayout):
 
     def attack_test(self):
         if data["weapons"][self.weapon["key"]]["class"] in ["Melee"]:
-            test_popup = TestPopup("Weapon Skill", self.ws, test_type=TestType.FIGHT)
+            test_popup = TestPopup(
+                "Weapon Skill",
+                self.ws,
+                test_type=TestType.FIGHT,
+                damage=data["weapons"][self.weapon["key"]]["damage"],
+                damage_bonus=self.st // 10,
+            )
         else:
-            test_popup = TestPopup("Ballistic Skill", self.bs, test_type=TestType.FIGHT)
-        test_popup.ids["button_box"].add_widget(Button(text="Damage"))
+            test_popup = TestPopup(
+                "Ballistic Skill",
+                self.bs,
+                test_type=TestType.FIGHT,
+                damage=data["weapons"][self.weapon["key"]]["damage"],
+            )
 
     def dodge_test(self):
         TestPopup("Dodge", self.dodge, test_type=TestType.FIGHT)
@@ -531,6 +543,7 @@ class WeaponBox(BoxLayout):
                 {"name": "Mordian-pattern", "bonus": 5, "type": "other", "on": True}
             )
             bonus += 5
+        print(bonus)
         TestPopup("Parry", self.ws + bonus, bonus_list, test_type=TestType.FIGHT)
 
 
@@ -551,15 +564,26 @@ class TestPopup(Popup):
     success = OptionProperty("none", options=["none", "yes", "no"])
 
     def __init__(
-        self, title, base_value, modifier=[], test_type=TestType.OTHER, **kwargs
+        self,
+        title,
+        base_value,
+        modifier=[],
+        test_type=TestType.OTHER,
+        damage=None,
+        damage_bonus=0,
+        **kwargs,
     ):
         super(TestPopup, self).__init__(**kwargs)
         self.title = "{} Test".format(title)
         self.base_value = base_value
         self.difficulty = 0
         self.misc_mod = 0
+        self.roll = 0
         self.current_value = self.base_value
         self.modifier = modifier
+        self.test_type = test_type
+        self.damage = damage
+        self.damage_bonus = damage_bonus
         self.difficulty_dropdown = DropDown()
         for difficulty in test_difficulties:
             button = DropdownButton(*difficulty)
@@ -579,7 +603,6 @@ class TestPopup(Popup):
             self.ids["modifier_box"].height += modifier_box.height
 
         dos_config = DoSAlgorithm(config.get("config")["dos_algorithm"])
-        print(dos_config)
         if dos_config == DoSAlgorithm.DARK_HERESY_2:
             self.dos_func = utils.calculate_dos_dh2
         elif dos_config == DoSAlgorithm.ROGUE_TRADER:
@@ -588,6 +611,9 @@ class TestPopup(Popup):
             self.dos_func = utils.calculate_dos_rt
         if dos_config == DoSAlgorithm.MIXED and test_type == TestType.FIGHT:
             self.dos_func = utils.calculate_dos_dh2
+
+        if test_type == TestType.FIGHT:
+            self.ids["button_damage"].on_press = self.roll_damage
         self.open()
 
     def set_difficulty(self, button, difficulty):
@@ -612,19 +638,51 @@ class TestPopup(Popup):
             self.current_value -= instance.parent.bonus
 
     def roll_test(self):
-        roll = random.randint(1, 100)
-        if roll <= self.current_value:
+        self.roll = random.randint(1, 100)
+        if self.roll <= self.current_value:
             self.success = "yes"
         else:
             self.success = "no"
-        self.ids["label_result"].text = str(roll)
-        degrees = self.dos_func(self.current_value, roll)
+        self.ids["label_result"].text = str(self.roll)
+        degrees = self.dos_func(self.current_value, self.roll)
         self.ids["label_degrees"].text = "{} {}".format(
             degrees, "Degree" if degrees == 1 else "Degrees"
         )
 
+    def roll_damage(self):
+        DamagePopup(utils.HitLocation.get(self.roll), self.damage, self.damage_bonus)
+
     def on_current_value(self, instance, value):
         self.ids["label_current_value"].text = str(value)
+
+    def on_success(self, instance, value):
+        if self.test_type == TestType.FIGHT and value == "yes":
+            self.ids["button_damage"].disabled = False
+            self.ids["button_damage"].opacity = 1.0
+        else:
+            self.ids["button_damage"].disabled = True
+            self.ids["button_damage"].opacity = 0
+
+
+class DamagePopup(Popup):
+    def __init__(self, hit_location, damage, bonus=0, **kwargs):
+        super().__init__(**kwargs)
+        self.ids["label_hit_location"].text = hit_location.label()
+        self.damage = damage
+        print(f"bonus: {bonus} | +: {damage['+']}")
+        damage_value = bonus + damage["+"]
+        for _ in range(self.damage["d5"]):
+            roll = random.randint(1, 5)
+            print(roll)
+            damage_value += roll
+        for _ in range(self.damage["d10"]):
+            roll = random.randint(1, 10)
+            print(roll)
+            if roll == 10:
+                self.ids["label_rf"].text = "YES!"
+            damage_value += roll
+        self.ids["label_damage"].text = str(damage_value)
+        self.open()
 
 
 class InfoPopup(Popup):

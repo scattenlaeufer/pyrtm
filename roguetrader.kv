@@ -389,3 +389,36 @@
 				id: button_ok
 				text: "Ok"
 				on_press: root.dismiss()
+			Button:
+				id: button_damage
+				text: "Damage"
+				disabled: True
+				opacity: 0
+
+<DamagePopup>:
+	size_hint: .4, .4
+	title: "Damage"
+	BoxLayout:
+		orientation: "vertical"
+		BoxLayout:
+			orientation: "horizontal"
+			Label:
+				text: "Hit Location"
+			Label:
+				id: label_hit_location
+		BoxLayout:
+			orientation: "horizontal"
+			Label:
+				text: "Damage"
+			Label:
+				id: label_damage
+		BoxLayout:
+			orientation: "horizontal"
+			Label:
+				text: "Righteous Fury"
+			Label:
+				id: label_rf
+				text: "No"
+		Button:
+			text: "Ok"
+			on_press: root.dismiss()
