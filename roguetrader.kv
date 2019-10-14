@@ -14,6 +14,104 @@
 						size_hint_y: None
 						minimun_height: self.setter("height")
 				BoxLayout:
+					orientation: "vertical"
+					BoxLayout:
+						orientation: "vertical"
+						size_hint_y: None
+						height: wounds_max.font_size * 4 + button_heal.font_size * 2.5
+						Label:
+							text: "Wounds"
+							height: self.font_size * 2
+							size_hint_y: None
+						BoxLayout:
+							size_hint_y: None
+							height: wounds_max.font_size * 2
+							orientation: "horizontal"
+							Label:
+								text: "max:"
+							Label:
+								id: wounds_max
+								text: "10"
+							Label:
+								text: "current:"
+							Label:
+								id: wounds_current
+								text: "10"
+							Label:
+								text: "critical:"
+							Label:
+								id: wounds_critical
+								text: "0"
+						BoxLayout:
+							orientation: "horizontal"
+							size_hint_y: None
+							height: button_heal.font_size * 2.5
+							Button:
+								id: button_take_damage
+								text: "Take Damage"
+							Button:
+								id: button_heal
+								text: "Heal Damage"
+							Button:
+								id: button_critical_damaga
+								text: "Manage Crticial Damage"
+					BoxLayout:
+						orientation: "vertical"
+						size_hint_y: None
+						height: fatigue_current.font_size * 4 + fatigue_add.font_size * 2.5
+						Label:
+							text: "Fatigue"
+						BoxLayout:
+							orientation: "horizontal"
+							Label:
+								text: "max:"
+							Label:
+								id: fatigue_max
+								text: "3"
+							Label:
+								text: "current:"
+							Label:
+								id: fatigue_current
+								text: "0"
+						BoxLayout:
+							orientation: "horizontal"
+							size_hint_y: None
+							height: fatigue_add.font_size * 2.5
+							Button:
+								id: fatigue_add
+								text: "Add Fatigue"
+							Button:
+								id: fatigue_remove
+								text: "Remove Fatigue"
+					BoxLayout:
+						orientation: "vertical"
+						size_hint_y: None
+						height: fate_max.font_size * 4 + button_fate_spend.font_size * 2.5
+						Label:
+							text: "Fate Points"
+						BoxLayout:
+							orientation: "horizontal"
+							Label:
+								text: "max:"
+							Label:
+								id: fate_max
+							Label:
+								text: "current:"
+							Label:
+								id: fate_current
+						BoxLayout:
+							orientation: "horizontal"
+							size_hint_y: None
+							height: button_fate_spend.font_size * 2.5
+							Button:
+								id: button_fate_spend
+								text: "spend"
+							Button:
+								id: button_fate_refill
+								text: "refill"
+							Button:
+								id: button_fate_change
+								text: "change number"
 					Label:
 						text: "blubb"
 		TabbedPanelItem:
@@ -122,6 +220,10 @@
 					id: dos_dh2
 					allow_no_selection: False
 					on_press: self.config_action()
+				Button:
+					id: button_reset
+					text: "Reset character"
+
 
 <CharacteristicButton>:
 	markup: True
