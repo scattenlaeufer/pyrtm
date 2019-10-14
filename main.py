@@ -81,7 +81,7 @@ default_character = {
         "charm": "+20",
         "command": "+10",
         "commerce": "t",
-        "common_lore": {"Imperium": "t", "Rogue Trader": "t"},
+        "common_lore": {"Imperium": "t", "Koronos Expanse": "t", "Rogue Trader": "t"},
         "dodge": "t",
         "evaluate": "t",
         "inquiry": "t",
