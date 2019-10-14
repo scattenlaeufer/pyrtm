@@ -122,6 +122,14 @@ default_character = {
         {"key": "plasma_pistol", "clip": 10, "clips": 5},
         {"key": "power_sword"},
     ],
+    "armour": {
+        "HEAD": 6,
+        "RIGHT_ARM": 6,
+        "LEFT_ARM": 6,
+        "BODY": 6,
+        "RIGHT_LEG": 6,
+        "LEFT_LEG": 6,
+    },
 }
 
 
