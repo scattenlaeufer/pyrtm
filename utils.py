@@ -25,18 +25,18 @@ def calculate_dos_dh2(value, roll):
     return 1 + abs(roll // 10 - value // 10)
 
 
-def get_hit_location(role):
-    location_value = int(str(role)[::-1])
+def get_hit_location(roll):
+    location_value = int(f"{roll:02}"[::-1])
     return location_value
 
 
 class HitLocation(enum.Enum):
-    HEAD = [i for i in range(1, 10)]
-    RIGHT_ARM = [i for i in range(11, 20)]
-    LEFT_ARM = [i for i in range(21, 30)]
-    BODY = [i for i in range(31, 70)]
-    RIGHT_LEG = [i for i in range(71, 85)]
-    LEFT_LEG = [i for i in range(86, 99)].append(0)
+    HEAD = [i for i in range(1, 11)]
+    RIGHT_ARM = [i for i in range(11, 21)]
+    LEFT_ARM = [i for i in range(21, 31)]
+    BODY = [i for i in range(31, 71)]
+    RIGHT_LEG = [i for i in range(71, 86)]
+    LEFT_LEG = [i for i in range(86, 101)]
 
     __labels__ = {
         "HEAD": "Head",
@@ -50,8 +50,12 @@ class HitLocation(enum.Enum):
     @classmethod
     def get(cls, value, *args, **kwargs):
         if isinstance(value, int):
+            if value == 100:
+                location_value = 100
+            else:
+                location_value = int(f"{value:02}"[::-1])
             for location in cls.__members__.values():
-                if value in location.value:
+                if location_value in location.value:
                     return location
             raise ValueError(f"{value} is not a hit location")
         else:
