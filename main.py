@@ -237,10 +237,12 @@ class MainBox(BoxLayout):
                 key = talent
                 groups = []
             button = TalentButton(
+                key=key,
                 text=f'{self.data["talents"][key]["name"]}'
                 if len(groups) == 0
-                else f'{self.data["talents"][key]["name"]} ({", ".join(groups)})'
+                else f'{self.data["talents"][key]["name"]} ({", ".join(groups)})',
             )
+            button.bind(on_press=lambda b: TalentInfoPopup(self.data["talents"][b.key]))
             self.ids["talents_box"].add_widget(button)
             self.ids["talents_box"].height += button.height
 
@@ -331,6 +333,13 @@ class CharacteristicButton(Button):
 
 
 class TalentButton(Button):
+
+    key = ""
+
+    def __init__(self, key=None, **kwargs):
+        self.key = key
+        super().__init__(**kwargs)
+
     def __lt__(self, other):
         return other.text < self.text
 
