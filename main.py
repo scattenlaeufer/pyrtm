@@ -57,6 +57,12 @@ default_character = {
     "motivation": "Prestige",
     "dascription": "blubb",
     "exp": [10800, 100],
+    "status": {
+        "wounds": {"max": 13, "current": 13, "critical": 0, "critical_effects": []},
+        "fatigue": 0,
+        "corruption": {"points": 1, "degree": 0, "malignancies": []},
+        "insanity": {"points": 6, "degree": 0, "disorders": []},
+    },
     "characteristics": {
         "ws": [48, 2],
         "bs": [45, 1],
@@ -110,6 +116,7 @@ default_character = {
         {"key": "auger_arrays", "quality": "good", "on": False},
         {"key": "vitae_supplacement", "quality": "best", "on": True},
     ],
+    "mutations": [],
     "weapons": [
         {"key": "plasma_pistol", "clip": 10, "clips": 5},
         {"key": "power_sword"},
