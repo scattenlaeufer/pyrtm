@@ -390,6 +390,10 @@
 	size_hint_y: None
 	height: self.font_size * 2
 
+<HitLocationButton>:
+	size_hint_y: None
+	height: self.font_size * 2
+
 <InfoPopup>:
 	size_hint: .5, .7
 	BoxLayout:
@@ -524,3 +528,107 @@
 		Button:
 			text: "Ok"
 			on_press: root.dismiss()
+
+<TakeDamagePopup>
+	size_hint: .4, .4
+	title: "Take Damage"
+	BoxLayout:
+		orientation: "vertical"
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: input_damage.font_size * 2
+			Label:
+				text: "Raw Damage:"
+			TextInput:
+				id: input_damage
+				input_filter: "int"
+				multiline: False
+				valign: "center"
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: input_pen.font_size * 2
+			Label:
+				text: "Penetration:"
+			TextInput:
+				id: input_pen
+				input_filter: "int"
+				multiline: False
+				valign: "center"
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: input_damage.font_size * 2
+			Label:
+				text: "Hit Location:"
+			Button:
+				id: button_hit_location
+				text: "Body"
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: input_damage.font_size * 4
+			Label:
+				text: "Damage Reduction:"
+			BoxLayout:
+				orientation: "vertical"
+				BoxLayout:
+					orientation: "horizontal"
+					CheckBox:
+						id: damage_toughness
+						active: True
+						size_hint_x: None
+						width: input_damage.font_size * 2
+					Label:
+						text: "Toughness"
+				BoxLayout:
+					orientation: "horizontal"
+					CheckBox:
+						id: damage_armour
+						active: True
+						size_hint_x: None
+						width: input_damage.font_size * 2
+					Label:
+						text: "Armour"
+		Label:
+			text: ""
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: button_ok.font_size * 3
+			Button:
+				id: button_ok
+				text: "Ok"
+				on_press: root.ok()
+			Button:
+				text: "Cancel"
+				on_press: root.dismiss()
+
+<HealDamagePopup>
+	size_hint: .4, .4
+	title: "Heal Damage"
+	BoxLayout:
+		orientation: "vertical"
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: input_value.font_size * 2
+			Label:
+				text: "Damage healed:"
+			TextInput:
+				id: input_value
+				input_filter: "int"
+				multiline: False
+				valign: "center"
+		BoxLayout:
+			orientation: "horizontal"
+			size_hint_y: None
+			height: button_ok.font_size * 3
+			Button:
+				id: button_ok
+				text: "Ok"
+				on_press: root.ok()
+			Button:
+				text: "Cancel"
+				on_press: root.dismiss()

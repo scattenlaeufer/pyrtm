@@ -146,6 +146,7 @@ class TestType(enum.IntFlag):
 
 data = {}
 config = None
+CHARACTER = None
 default_config = {"dos_algorithm": DoSAlgorithm.ROGUE_TRADER.value}
 
 
@@ -180,7 +181,13 @@ class MainBox(BoxLayout):
         self.ids["dos_mixed"].algorithm = DoSAlgorithm.MIXED
         self.ids["dos_dh2"].algorithm = DoSAlgorithm.DARK_HERESY_2
 
-        self.character = default_character
+        # load character
+        global CHARACTER
+        CHARACTER = JsonStore(user_dir / "character.json")
+        if not CHARACTER.exists("character"):
+            CHARACTER.put("character", **default_character)
+        # CHARACTER.put("character", **default_character)
+        self.character = CHARACTER.get("character")
         start_layout = StartLayout(self.data)
         self.ids["all_talents"].add_widget(start_layout)
 
@@ -305,6 +312,27 @@ class MainBox(BoxLayout):
             )
             self.ids["weapon_box"].add_widget(weapon_box)
             self.ids["weapon_box"].height += weapon_box.height
+
+        # set wounds
+        self.ids["wounds_max"].text = str(self.character["status"]["wounds"]["max"])
+        self.ids["wounds_current"].text = str(
+            self.character["status"]["wounds"]["current"]
+        )
+        self.ids["wounds_critical"].text = str(
+            self.character["status"]["wounds"]["critical"]
+        )
+        self.ids["button_take_damage"].bind(on_press=lambda _: TakeDamagePopup(self))
+        self.ids["button_heal"].bind(on_press=lambda _: HealDamagePopup(self))
+
+        # set fatigue
+        self.ids["fatigue_current"].text = str(self.character["status"]["fatigue"])
+        self.ids["fatigue_max"].text = str(
+            self.character["characteristics"]["t"][0] // 10
+        )
+
+        # set fate points
+        self.ids["fate_max"].text = str(self.character["status"]["fate"]["max"])
+        self.ids["fate_current"].text = str(self.character["status"]["fate"]["current"])
 
     def characteristics_test(self, instance):
         print(instance.text)
@@ -790,11 +818,80 @@ class ItemInfoPopup(InfoPopup):
         super(ItemInfoPopup, self).__init__(item["name"], info_text, **kwargs)
 
 
+class TakeDamagePopup(Popup):
+    def __init__(self, instance, **kwargs):
+        super().__init__(**kwargs)
+        self.instance = instance
+        self.hit_location = utils.HitLocation.BODY
+        self.hit_location_dropdown = DropDown()
+        for hit_location in utils.HitLocation.__members__.values():
+            button = HitLocationButton(hit_location)
+            button.bind(
+                on_release=lambda btn: self.hit_location_dropdown.select(btn.location)
+            )
+            self.hit_location_dropdown.add_widget(button)
+        self.ids["button_hit_location"].bind(on_release=self.hit_location_dropdown.open)
+        self.hit_location_dropdown.bind(on_select=self.set_hit_location)
+        self.open()
+
+    def ok(self):
+        damage_raw = (
+            int(self.ids["input_damage"].text) if self.ids["input_damage"].text else 0
+        )
+        damage = damage_raw
+        char = CHARACTER.get("character")
+        reduction = 0
+        toughness = char["characteristics"]["t"][0] // 10
+        if self.ids["damage_toughness"].active:
+            reduction += toughness
+        pen = int(self.ids["input_pen"].text) if self.ids["input_pen"].text else 0
+        armour = char["armour"][self.hit_location.name]
+        if self.ids["damage_armour"].active:
+            reduction += armour - pen if armour > pen else 0
+        damage = damage - reduction if damage_raw > reduction else 0
+        char["status"]["wounds"]["current"] -= damage
+        CHARACTER.put("character", **char)
+        self.instance.ids["wounds_current"].text = str(
+            char["status"]["wounds"]["current"]
+        )
+        self.dismiss()
+
+    def set_hit_location(self, _, hit_location):
+        self.hit_location = hit_location
+        self.ids["button_hit_location"].text = self.hit_location.label()
+
+
+class HealDamagePopup(Popup):
+    def __init__(self, instance, **kwargs):
+        super().__init__(**kwargs)
+        self.instance = instance
+        self.open()
+
+    def ok(self):
+        heal = int(self.ids["input_value"].text) if self.ids["input_value"].text else 0
+        char = CHARACTER.get("character")
+        char["status"]["wounds"]["current"] += heal
+        if char["status"]["wounds"]["current"] > char["status"]["wounds"]["max"]:
+            char["status"]["wounds"]["current"] = char["status"]["wounds"]["max"]
+        CHARACTER.put("character", **char)
+        self.instance.ids["wounds_current"].text = str(
+            char["status"]["wounds"]["current"]
+        )
+        self.dismiss()
+
+
 class DropdownButton(Button):
     def __init__(self, difficulty, modifier, **kwargs):
         super(DropdownButton, self).__init__(**kwargs)
         self.text = "{0} ({1:+d})".format(difficulty, modifier)
         self.modifier = modifier
+
+
+class HitLocationButton(Button):
+    def __init__(self, location, **kwargs):
+        super().__init__(**kwargs)
+        self.text = location.label()
+        self.location = location
 
 
 class ConfigButton(ToggleButton):
