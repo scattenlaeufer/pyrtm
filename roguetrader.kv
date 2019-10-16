@@ -80,9 +80,11 @@
 							Button:
 								id: fatigue_add
 								text: "Add Fatigue"
+								on_press: root.add_fatigue()
 							Button:
 								id: fatigue_remove
 								text: "Remove Fatigue"
+								on_press: root.remove_fatigue()
 					BoxLayout:
 						orientation: "vertical"
 						size_hint_y: None
@@ -403,6 +405,21 @@
 		Button:
 			size_hint: 1, .15
 			text: 'Ok'
+			on_press: root.dismiss()
+
+<NotificationPopup>:
+	size_hint: .3, .3
+	BoxLayout:
+		orientation: "vertical"
+		Label:
+			id: notification_label
+			text_size: self.width-10, self.height-10
+			valign: "middle"
+			halign: "center"
+		Button:
+			size_hint_y: None
+			height: self.font_size * 2.5
+			text: "Ok"
 			on_press: root.dismiss()
 
 <TestPopup>:

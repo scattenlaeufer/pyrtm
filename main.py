@@ -341,6 +341,23 @@ class MainBox(BoxLayout):
     def skill_info(self, instance):
         SkillInfoPopup(self.data["skills"][instance.skill_key])
 
+    def add_fatigue(self):
+        char = CHARACTER.get("character")
+        char["status"]["fatigue"] += 1
+        tb = char["characteristics"]["t"][0] // 10
+        if char["status"]["fatigue"] > tb:
+            NotificationPopup(f"{char['name']} is unconscious for {10-tb} minutes")
+            char["status"]["fatigue"] = tb
+        self.ids["fatigue_current"].text = str(char["status"]["fatigue"])
+        CHARACTER.put("character", **char)
+
+    def remove_fatigue(self):
+        char = CHARACTER.get("character")
+        if char["status"]["fatigue"] > 0:
+            char["status"]["fatigue"] -= 1
+            self.ids["fatigue_current"].text = str(char["status"]["fatigue"])
+            CHARACTER.put("character", **char)
+
 
 class StartLayout(GridLayout):
     def __init__(self, data, **kwargs):
@@ -633,7 +650,7 @@ class TestPopup(Popup):
         self.misc_mod = 0
         self.roll = 0
         self.current_value = self.base_value
-        self.modifier = modifier
+        self.modifier = modifier.copy()
         self.test_type = test_type
         self.damage = damage
         self.damage_bonus = damage_bonus
@@ -649,6 +666,14 @@ class TestPopup(Popup):
         self.ids["button_difficulty"].bind(on_release=self.difficulty_dropdown.open)
         self.difficulty_dropdown.bind(on_select=self.set_difficulty)
         self.ids["modifier_box"].height = 0
+        fatigue_mod = {"name": "Fatigue", "bonus": -10, "type": "status"}
+        char = CHARACTER.get("character")
+        if char["status"]["fatigue"] > 0:
+            fatigue_mod["on"] = True
+            self.current_value += fatigue_mod["bonus"]
+        else:
+            fatigue_mod["on"] = False
+        self.modifier.append(fatigue_mod)
         for mod in self.modifier:
             modifier_box = ModifierBox(mod)
             modifier_box.ids["checkbox_on"].bind(active=self.modify_current_value)
@@ -743,6 +768,13 @@ class InfoPopup(Popup):
         super(InfoPopup, self).__init__(**kwargs)
         self.title = title
         self.ids["label_info"].text = info
+        self.open()
+
+
+class NotificationPopup(Popup):
+    def __init__(self, notification, title="Notification", **kwargs):
+        super().__init__(title=title)
+        self.ids["notification_label"].text = notification
         self.open()
 
 
