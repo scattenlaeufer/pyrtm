@@ -19,5 +19,4 @@ jobs:
           poetry install
       - name: Run Tests
         run: |
-          cd resotool
           ~/.poetry/bin/poetry run pytest
