@@ -32,5 +32,4 @@ jobs:
           $HOME/.poetry/bin/poetry install
       - name: Run pylint
         run: |
-          cd resotool
-          $HOME/.poetry/bin/poetry run pylint resoapp resotool manage.py
+          $HOME/.poetry/bin/poetry run pylint *.py
